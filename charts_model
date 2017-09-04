@@ -1,0 +1,122 @@
+# build_charts
+1.去除[ - ]
+['海淀', '-', '四季青']
+['朝阳', '高碑店']
+
+for i in item_info.find():
+    if i['area']:
+        area = [i for i in i['area'] if i not in punctuation]
+    else:
+        area = ['不明']
+item_info.update({'_id':i['_id']},{'$set':{'area':area}})
+构建Highlighs表格：
+
+area_list = []
+for i in item_info.find():
+    area_list.append(i['area'][0])
+area_index = list(set(area_list))
+print(area_index
+
+***
+['西城', '燕郊', '密云', '石景山', '海淀', '朝阳', '宣武', '平谷', '怀柔', '昌平', '附近', '大兴', '顺义', '延庆', '不明', '丰台', '北京周边', '房山', '东城', '崇文', '通州', '门头沟']
+***
+
+post_times = []
+for index in area_index:
+    post_times.append(area_list.count(index))
+print(post_times)
+
+***
+[3376, 541, 386, 1958, 11768, 19224, 1803, 277, 381, 4963, 3, 4856, 1913, 164, 15505, 7991, 520, 1490, 3155, 1188, 4924, 464]
+***
+def data_gen(types):
+    length = 0
+    if length <= len(area_index):
+        for area,times in zip(area_index,post_times):     【构建数据格式】
+            data = {
+                'name':area,
+                'data':[times],
+                'type':types
+            }
+            yield data
+            length += 1
+
+for i in data_gen('column'):
+print(i)
+
+
+
+
+{'data': [3376], 'type': 'column', 'name': '西城'}
+{'data': [541], 'type': 'column', 'name': '燕郊'}
+{'data': [386], 'type': 'column', 'name': '密云'}
+{'data': [1958], 'type': 'column', 'name': '石景山'}
+{'data': [11768], 'type': 'column', 'name': '海淀'}
+{'data': [19224], 'type': 'column', 'name': '朝阳'}
+{'data': [1803], 'type': 'column', 'name': '宣武'}
+
+series = [data for data in data_gen('column')]
+charts.plot(series, show='inline', options=dict(title=dict(text='七日内北京城区二手物品发帖量')))
+
+***
+2016-12-12 替换为 2016.12.12
+for i in item_info.find():
+    frags = i['pub_date'].split('-')
+    if len(frags) == 1:
+        date = frags[0]
+    else:
+        date = '{}.{}.{}'.format(frags[0],frags[1],frags[2])
+item_info.update_one({'_id':i['_id']},{'$set':{'pub_date':date}})
+
+
+
+
+
+pipeline = [
+    {'$match':{'$and':[{'pub_date':{'$in':['2015.12.25','2015.12.27']}},{'time':1}]}},
+    {'$group':{'_id':{'$slice':['$area',1]},'counts':{'$sum':1}}},
+    {'$sort' :{'counts':-1}},
+]
+for i in item_info.aggregate(pipeline):
+print(i)
+{'_id': ['朝阳'], 'counts': 60}
+{'_id': ['不明'], 'counts': 59}
+{'_id': ['海淀'], 'counts': 38}
+{'_id': ['丰台'], 'counts': 26}
+{'_id': ['昌平'], 'counts': 18}
+{'_id': ['通州'], 'counts': 13}
+{'_id': ['大兴'], 'counts': 13}
+{'_id': ['房山'], 'counts': 9}
+{'_id': ['西城'], 'counts': 7}
+{'_id': ['东城'], 'counts': 6}
+{'_id': ['宣武'], 'counts': 6}
+{'_id': ['顺义'], 'counts': 6}
+{'_id': ['北京周边'], 'counts': 4}
+{'_id': ['崇文'], 'counts': 3}
+{'_id': ['怀柔'], 'counts': 3}
+{'_id': ['石景山'], 'counts': 2}
+{'_id': ['燕郊'], 'counts': 1}
+{'_id': ['平谷'], 'counts': 1}
+def data_gen(date,time):
+    pipeline = [
+        {'$match':{'$and':[{'pub_date':{'$in':date}},{'time':time}]}},
+        {'$group':{'_id':{'$slice':['$area',1]},'counts':{'$sum':1}}},
+        {'$sort' :{'counts':-1}},
+    ]
+    for i in item_info.aggregate(pipeline):
+        yield [i['_id'][0],i['counts']]
+
+options = {
+    'chart'   : {'zoomType':'xy'},
+    'title'   : {'text': '饼图'},
+    'subtitle': {'text': '城区交易量分布'},
+    }
+
+
+series =  [{
+    'type': 'pie',
+    'name': 'pie charts',
+    'data':[i for i in data_gen(['2015.12.25','2015.12.27'],1)]
+
+        }]
+charts.plot(series,options=options,show='inline')

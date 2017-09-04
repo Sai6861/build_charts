@@ -1,0 +1,42 @@
+# small_epiphany
+
+import pymysql
+from bs4 import BeautifulSoup
+import requests
+import re
+import json
+import time
+
+conn = pymysql.connect(
+    port = 3306,
+    host = '127.0.0.1',
+    user = 'root',
+    password = 'Panny2601039',
+    charset = 'utf8',
+    db = 'douban'
+)
+cursor = conn.cursor()
+urls = ['https://movie.douban.com/j/new_search_subjects?sort=T&range=0,10&tags=&start={}'.format(str(i)) for i in range(20,800,20)]
+问题 = []
+i = 1
+for url in urls:
+    wb_data = requests.get(url)
+    raw_infos = wb_data.json()['data']
+    time.sleep(1)
+    for raw_info in raw_infos:
+        try:
+            directors = str(raw_info['directors'])
+            title = raw_info['title']
+            rate = raw_info['rate']
+            url = raw_info['url']
+            casts = str(raw_info['casts'])
+            id = raw_info['id']
+            sql = ("insert into douban_1 (directors,title,rate,url,casts,id) values(%s,%s,%s,%s,%s,%s)")
+            data = (directors,title,rate,url,casts,id)
+            print('第{}条正在处理'.format(i) )
+            cursor.execute(sql,data)
+            conn.commit()
+        except Exception as e:
+            print('问题是：'+ str(e))
+            问题.append(str(e))
+        i = i + 1

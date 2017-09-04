@@ -1,0 +1,140 @@
+# small_epiphany
+
+特殊分组用法：
+(?P<name>)	分组，除了原有的编号外再指定一个额外的别名	(?P<id>abc){2}	abcabc
+(?P=name)	引用别名为<name>的分组匹配到字符串	(?P<id>\d)abc(?P=id)	1abc1
+5abc5
+\<number>	引用编号为<number>的分组匹配到字符串	(\d)abc\1	1abc1
+5abc5
+1、compile()
+编译正则表达式模式，返回一个对象的模式。（可以把那些常用的正则表达式编译成正则表达式对象，这样可以提高一点效率。）
+格式：
+re.compile(pattern,flags=0)
+pattern: 编译时用的表达式字符串。
+flags 编译标志位，用于修改正则表达式的匹配方式，如：是否区分大小写，多行匹配等。常用的flags有：
+标志	含义
+re.S(DOTALL)	使.匹配包括换行在内的所有字符
+re.I（IGNORECASE）	使匹配对大小写不敏感
+re.L（LOCALE）	做本地化识别（locale-aware)匹配，法语等
+re.M(MULTILINE)	多行匹配，影响^和$
+re.X(VERBOSE)	该标志通过给予更灵活的格式以便将正则表达式写得更易于理解
+re.U	根据Unicode字符集解析字符，这个标志影响\w,\W,\b,\B
+
+
+import re tt = "Tina is a good girl, she is cool, clever, and so on..." rr = re.compile(r'\w*oo\w*') print(rr.findall(tt)) #查找所有包含'oo'的单词 执行结果如下： ['good', 'cool']
+2、match()
+决定RE是否在字符串刚开始的位置匹配。//注：这个方法并不是完全匹配。当pattern结束时若string还有剩余字符，仍然视为成功。想要完全匹配，可以在表达式末尾加上边界匹配符'$'
+格式：
+re.match(pattern, string, flags=0)
+print(re.match('com','comwww.runcomoob').group())print(re.match('com','Comwww.runcomoob',re.I).group())
+执行结果如下：
+com
+com
+3、search()
+ 格式：
+re.search(pattern, string, flags=0)
+re.search函数会在字符串内查找模式匹配,只要找到第一个匹配然后返回，如果字符串没有匹配，则返回None。
+print(re.search('\dcom','www.4comrunoob.5com').group())
+执行结果如下：
+4com
+4、findall()
+re.findall遍历匹配，可以获取字符串中所有匹配的字符串，返回一个列表。
+ 格式：
+re.findall(pattern, string, flags=0)
+p = re.compile(r'\d+')print(p.findall('o1n2m3k4'))
+执行结果如下：
+['1', '2', '3', '4']
+import re tt = "Tina is a good girl, she is cool, clever, and so on..." rr = re.compile(r'\w*oo\w*') print(rr.findall(tt)) print(re.findall(r'(\w)*oo(\w)',tt))#()表示子表达式 执行结果如下： ['good', 'cool'] [('g', 'd'), ('c', 'l')]
+6、split()
+按照能够匹配的子串将string分割后返回列表。
+可以使用re.split来分割字符串，如：re.split(r'\s+', text)；将字符串按空格分割成一个单词列表。
+格式：
+re.split(pattern, string[, maxsplit])
+maxsplit用于指定最大分割次数，不指定将全部分割。
+print(re.split('\d+','one1two2three3four4five5'))
+执行结果如下：
+['one', 'two', 'three', 'four', 'five', '']
+7、sub()
+使用re替换string中每一个匹配的子串后返回替换后的字符串。
+格式：
+re.sub(pattern, repl, string, count)
+import re
+text = "JGood is a handsome boy, he is cool, clever, and so on..."print(re.sub(r'\s+', '-', text))
+执行结果如下：
+JGood-is-a-handsome-boy,-he-is-cool,-clever,-and-so-on...
+其中第二个函数是替换后的字符串；本例中为'-'
+第四个参数指替换个数。默认为0，表示每个匹配项都替换。
+1、re.match与re.search与re.findall的区别：
+re.match只匹配字符串的开始，如果字符串开始不符合正则表达式，则匹配失败，函数返回None；而re.search匹配整个字符串，直到找到一个匹配。
+a=re.search('[\d]',"abc33").group()print(a)
+p=re.match('[\d]',"abc33")print(p)
+b=re.findall('[\d]',"abc33")print(b)
+执行结果：3
+None
+['3', '3']
+2、贪婪匹配与非贪婪匹配
+*?,+?,??,{m,n}?    前面的*,+,?等都是贪婪匹配，也就是尽可能匹配，后面加?号使其变成惰性匹配
+a = re.findall(r"a(\d+?)",'a23b')print(a)
+b = re.findall(r"a(\d+)",'a23b')print(b)
+执行结果：
+['2']
+['23']
+a = re.match('<(.*)>','<H1>title<H1>').group()print(a)
+b = re.match('<(.*?)>','<H1>title<H1>').group()print(b)
+执行结果：<H1>title<H1>
+<H1>
+a = re.findall(r"a(\d+)b",'a3333b')print(a)
+b = re.findall(r"a(\d+?)b",'a3333b')print(b)
+执行结果如下：
+['3333']
+['3333']#######################
+这里需要注意的是如果前后均有限定条件的时候，就不存在什么贪婪模式了，非匹配模式失效。
+
+ 3、用flags时遇到的小坑
+print(re.split('a','1A1a2A3',re.I))#输出结果并未能区分大小写
+这是因为re.split(pattern，string，maxsplit,flags)默认是四个参数，当我们传入的三个参数的时候，系统会默认re.I是第三个参数，所以就没起作用。如果想让这里的re.I起作用，写成flags=re.I即可。 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+from bs4 import BeautifulSoup
+from urllib.request import urlopen,Request
+import random
+import re
+from urllib.request import urlretrieve
+def get_urls(url,headers):
+    random_header = random.choice(headers)
+    req = Request(url)
+    req.add_header('User_Agent', random_header)
+    req.add_header('GET',url)
+    req.add_header('Host','tieba.baidu.com')
+    req.add_header('Referer', 'http://tieba.baidu.com/p/4792769205')
+    html = urlopen(req)
+    return html
+
+url="http://tieba.baidu.com/p/4792769205"
+my_headers = ['Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.104 Safari/537.36 Core/1.53.3226.400 QQBrowser/9.6.11682.400']
+html = get_urls(url,my_headers)
+bs_obj = BeautifulSoup(html,'html.parser')
+img_list = bs_obj.findAll('img',{'src':re.compile('http://imgsrc.baidu.com/forum/w%3D580/sign=.+\.jpg')})
+for index, img in enumerate(img_list):
+    imgurl = img['src']
+    imagelocation = 'D://09/' + str(index+1) + '.jpg'
+    urlretrieve(imgurl, imagelocation)
+    print('图片：', index+1,'下载完毕')
+
+

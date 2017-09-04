@@ -1,0 +1,43 @@
+# small_epiphany
+2017-08-18
+
+# lambda匿名函数用法
+# 关键字lambda 表示匿名函数，冒号前面的 x 表示函数参数。
+print(filter(lambda s: s and len(s.strip())>0,['test', None, '', 'str', '  ', 'END']))
+
+#**kw表示可以任意输入参数和对应的值，这些键值对被组织成字典dict，for k,v in kw.
+# iteritems()表示对该字典的键值对进行迭代（k获得键，v获得值）,
+# iteritems()这个方法可以一个一个输出字典中的键值对，setattr(self,k,v)表示对实例自身设置属性和对应的值，
+# self表示实例自身，k表示参数，v表示值。
+#定义class 和 __init__用法
+class Person(object):
+    def __init__(self,name,gender,birth,**kw):
+        self.name = name
+        self.gender = gender
+        self.birth = birth
+        for k, w in kw.iteritems():
+            setattr(self, k, w)
+
+xiaoming = Person('Xiao Ming', 'Male', '1990-1-1', job='Student')
+
+print(xiaoming.name)
+print(xiaoming.birth)
+
+#Python对属性权限的控制是通过属性名来实现的，如果一个属性由双下划线开头(__)，该属性就无法被外部访问。看例子：
+#可见，只有以双下划线开头的"__job"不能直接被外部访问。
+
+class Person(object):
+    def __init__(self, name):
+        self.name = name
+        self._title = 'Mr'
+        self.__job = 'Student'
+p = Person('Bob')
+print(p.name)
+# => Bob
+print(p._title)
+# => Mr
+print(p.__job)
+# => Error
+#Traceback (most recent call last):
+# File "<stdin>", line 1, in <module>
+# AttributeError: 'Person' object has no attribute '__job'
